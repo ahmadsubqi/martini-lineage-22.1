@@ -13,14 +13,13 @@ The upstream reference is
 branch `lineage-18.1`.
 
 That tree is a legacy Android 11 / LineageOS 18.1 base. It must **not** be
-treated as an Android 15-ready device tree. This repository currently contains
-only the initial manifest and an automated reference audit; it does not yet
-build a ROM or produce a flashable ZIP.
+treated as an Android 15-ready device tree. This repository now contains a minimal Android 15 device-tree skeleton plus automated source audits. It still does not build a ROM or produce a flashable ZIP.
 
 ## Project layout
 
-- `.repo/local_manifests/martini.xml` — initial repo manifest entry for the
-  upstream reference tree.
+- `.repo/local_manifests/martini.xml` — manifest wiring the new device-tree skeleton and clearly marked legacy dependencies.
+- `device/nokia/martini/` — minimal Android 15 product/device skeleton; boot layout, partition settings, Binder ABI, HAL packages and legacy vendor integration are intentionally withheld.
+- `device/nokia/martini/PORTING_STATUS.md` — current skeleton scope and remaining validation gates.
 - `scripts/audit-device-tree.sh` — checks out and audits required upstream
   device-tree files.
 - `.github/workflows/audit.yml` — runs the audit in GitHub Actions.
@@ -44,8 +43,7 @@ See [`docs/ANDROID15_PORT_AUDIT.md`](docs/ANDROID15_PORT_AUDIT.md) for the verif
 1. Audit the complete device tree, kernel source, vendor blobs, firmware and
    boot chain.
 2. Identify Android 15 / LineageOS 22.1 framework and build-system changes.
-3. Port product makefiles, BoardConfig, device configuration, init scripts,
-   overlays, sepolicy and HAL integration.
+3. Expand the minimal Android 15 product makefiles and BoardConfig only after validating build-system and ABI requirements; then port init scripts, overlays, sepolicy and HAL integration.
 4. Confirm a compatible MSM8974 kernel and required legacy interfaces.
 5. Validate proprietary blobs and their dependency/API compatibility.
 6. Build boot/vendor/system images in a suitably provisioned build environment.
