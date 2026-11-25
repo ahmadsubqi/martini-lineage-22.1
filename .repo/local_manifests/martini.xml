@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+    <!-- Initial reference only: this is the existing Lumia 930 device tree.
+         It is not yet a LineageOS 22.1 port. -->
+    <project
+        name="lumia-msm8974/android_device_nokia_martini"
+        path="device/nokia/martini"
+        remote="github"
+        revision="lineage-18.1" />
+</manifest>
