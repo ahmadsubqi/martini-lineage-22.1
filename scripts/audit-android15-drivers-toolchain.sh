@@ -24,7 +24,7 @@ clone_repo() {
   echo "- Target: Android 15 / LineageOS 22.1"
   echo
   echo "## 1. Toolchain availability"
-  for tool in arm-linux-gnueabi-gcc arm-linux-gnueabihf-gcc clang make bc bison flex; do
+  for tool in arm-linux-gnueabi-gcc-9 arm-linux-gnueabihf-gcc clang make bc bison flex; do
     if command -v "$tool" >/dev/null 2>&1; then
       echo "- $tool: $(command -v "$tool")"
       "$tool" --version 2>/dev/null | head -n 1 || true
@@ -77,18 +77,18 @@ clone_repo "$COMMON_REPO" "lineage-18.1-lumia" "$WORK/common" >> "$OUT/ANDROID15
   echo
   echo "## 5. Kernel compile smoke test"
 } | tee -a "$OUT/ANDROID15_DRIVER_TOOLCHAIN_AUDIT.md"
-if [ -d "$WORK/kernel" ] && command -v arm-linux-gnueabi-gcc >/dev/null 2>&1 && command -v make >/dev/null 2>&1; then
+if [ -d "$WORK/kernel" ] && command -v arm-linux-gnueabi-gcc-9 >/dev/null 2>&1 && command -v make >/dev/null 2>&1; then
   (
     cd "$WORK/kernel"
     export ARCH=arm
     export CROSS_COMPILE=arm-linux-gnueabi-
-    make lineage_martini_defconfig
-    make -j2
+    make CC=arm-linux-gnueabi-gcc-9 lineage_martini_defconfig
+    make CC=arm-linux-gnueabi-gcc-9 -j2
   ) > "$OUT/kernel-build-smoke.log" 2>&1
   result=$?
   {
     echo "- Result: $([ "$result" -eq 0 ] && echo PASS || echo FAIL) (exit $result)"
-    echo "- Compiler: $(arm-linux-gnueabi-gcc --version | head -n 1)"
+    echo "- Compiler: $(arm-linux-gnueabi-gcc-9 --version | head -n 1)"
     echo "- Full output: kernel-build-smoke.log artifact"
     tail -n 35 "$OUT/kernel-build-smoke.log" || true
   } | tee -a "$OUT/ANDROID15_DRIVER_TOOLCHAIN_AUDIT.md"
