@@ -90,10 +90,23 @@ if [ -d "$WORK/kernel" ] && [ -x "$GCC49" ] && command -v make >/dev/null 2>&1; 
     make CC="$GCC49" -j2
   ) > "$OUT/kernel-build-smoke.log" 2>&1
   result=$?
+  if [ "$result" -eq 0 ]; then
+    mkdir -p "$OUT/kernel-output"
+    for artifact in arch/arm/boot/zImage-dtb arch/arm/boot/zImage System.map .config; do
+      if [ -f "$artifact" ]; then
+        cp "$artifact" "$OUT/kernel-output/"
+      fi
+    done
+    (cd "$OUT/kernel-output" && sha256sum * > SHA256SUMS)
+  fi
   {
     echo "- Result: $([ "$result" -eq 0 ] && echo PASS || echo FAIL) (exit $result)"
     echo "- Compiler: $("$GCC49" --version | head -n 1)"
     echo "- Full output: kernel-build-smoke.log artifact"
+    if [ "$result" -eq 0 ]; then
+      echo "- Build outputs: kernel-output/ (zImage-dtb, zImage, System.map, .config when present)"
+      echo "- SHA-256 manifest: kernel-output/SHA256SUMS"
+    fi
     tail -n 35 "$OUT/kernel-build-smoke.log" || true
   } | tee -a "$OUT/ANDROID15_DRIVER_TOOLCHAIN_AUDIT.md"
 else
