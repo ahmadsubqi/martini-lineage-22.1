@@ -1,0 +1,42 @@
+name: Martini Android 15 driver and toolchain audit
+
+on:
+  push:
+    branches:
+      - android-15-port
+    paths:
+      - scripts/audit-android15-drivers-toolchain.sh
+      - docs/ANDROID15_DRIVER_TOOLCHAIN_AUDIT.md
+      - .github/workflows/android15-driver-toolchain-audit.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  driver-toolchain-audit:
+    name: Inspect drivers and smoke-test legacy kernel
+    runs-on: ubuntu-22.04
+    timeout-minutes: 45
+    steps:
+      - name: Install ARM cross compiler
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-arm-linux-gnueabi make bc bison flex
+      - name: Checkout Android 15 port branch
+        uses: actions/checkout@v4
+        with:
+          ref: android-15-port
+          persist-credentials: false
+      - name: Run driver and toolchain audit
+        run: |
+          chmod +x scripts/audit-android15-drivers-toolchain.sh
+          scripts/audit-android15-drivers-toolchain.sh
+      - name: Upload audit reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: martini-android15-driver-toolchain-audit
+          path: |
+            driver-toolchain-audit/ANDROID15_DRIVER_TOOLCHAIN_AUDIT.md
+            driver-toolchain-audit/kernel-build-smoke.log
