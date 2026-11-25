@@ -21,13 +21,12 @@ fetch "$BASE/lumia-msm8974/android_kernel_nokia_msm8974/lineage-18.1-martini/dri
 fetch "$BASE/lumia-msm8974/android_kernel_nokia_msm8974/lineage-18.1-martini/arch/arm/configs/lineage_martini_defconfig" "$KERNEL/arch/arm/configs/lineage_martini_defconfig"
 fetch "$BASE/lumia-msm8974/android_device_nokia_martini/lineage-18.1/BoardConfig.mk" "$DEVICE/BoardConfig.mk"
 
-grep -q 'TARGET_linux-arm.mk' "$BUILD/core/combo/select.mk"
+test -s "$BUILD/core/combo/TARGET_linux-arm.mk"
 echo "PASS: LineageOS 22.1 has a Linux ARM32 target combo"
 
 grep -q 'TARGET_ARCH := arm' "$DEVICE/BoardConfig.mk"
 grep -q 'TARGET_ARCH_VARIANT := armv7-a-neon' "$DEVICE/BoardConfig.mk"
 grep -q 'TARGET_CPU_ABI := armeabi-v7a' "$DEVICE/BoardConfig.mk"
-grep -q 'TARGET_ARCH := arm' "$TMP/../not-used" 2>/dev/null && true || true
 echo "PASS: legacy martini board declares ARMv7 userspace ABI"
 
 grep -q 'config ANDROID_BINDER_IPC_32BIT' "$KERNEL/drivers/staging/android/Kconfig"
