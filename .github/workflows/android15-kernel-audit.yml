@@ -1,0 +1,34 @@
+name: Martini Android 15 kernel compatibility audit
+
+on:
+  push:
+    branches:
+      - android-15-port
+    paths:
+      - scripts/audit-android15-kernel.sh
+      - docs/ANDROID15_KERNEL_AUDIT.md
+      - .github/workflows/android15-kernel-audit.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  kernel-audit:
+    name: Inspect legacy MSM8974 kernel source
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout Android 15 port branch
+        uses: actions/checkout@v4
+        with:
+          ref: android-15-port
+          persist-credentials: false
+      - name: Run kernel source audit
+        run: |
+          chmod +x scripts/audit-android15-kernel.sh
+          scripts/audit-android15-kernel.sh
+      - name: Upload audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: martini-android15-kernel-audit
+          path: kernel-audit-report/ANDROID15_KERNEL_AUDIT.md
