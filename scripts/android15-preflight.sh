@@ -22,7 +22,8 @@ check_branch() {
 
 CLONED_DIR=""
 clone_repo() {
-  local name="$1" repo="$2" branch="$3" dest="$TMP/$name"
+  local name="$1" repo="$2" branch="$3"
+  local dest="$TMP/$name"
   log ""
   log "### $name — $repo@$branch"
   if ! git clone --quiet --depth=1 --single-branch --branch "$branch" "https://github.com/$repo.git" "$dest" 2>>"$REPORT"; then
