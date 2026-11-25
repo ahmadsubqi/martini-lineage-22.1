@@ -1,0 +1,30 @@
+name: Martini Android 15 ARM32 and Binder audit
+
+on:
+  push:
+    branches:
+      - android-15-port
+    paths:
+      - 'scripts/audit-arm32-binder.sh'
+      - 'docs/ANDROID15_ARM32_BINDER_AUDIT.md'
+      - '.github/workflows/android15-arm32-binder-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Audit LineageOS 22.1 ARM32 and Binder source
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout Android 15 port branch
+        uses: actions/checkout@v4
+        with:
+          ref: android-15-port
+          persist-credentials: false
+
+      - name: Run upstream source audit
+        run: |
+          chmod +x scripts/audit-arm32-binder.sh
+          scripts/audit-arm32-binder.sh
