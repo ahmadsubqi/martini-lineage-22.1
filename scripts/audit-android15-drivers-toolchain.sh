@@ -93,11 +93,13 @@ if [ -d "$WORK/kernel" ] && [ -x "$GCC49" ] && command -v make >/dev/null 2>&1; 
   if [ "$result" -eq 0 ]; then
     mkdir -p "$OUT/kernel-output"
     for artifact in arch/arm/boot/zImage-dtb arch/arm/boot/zImage System.map .config; do
-      if [ -f "$artifact" ]; then
-        cp "$artifact" "$OUT/kernel-output/"
+      if [ -f "$WORK/kernel/$artifact" ]; then
+        cp "$WORK/kernel/$artifact" "$OUT/kernel-output/"
       fi
     done
-    (cd "$OUT/kernel-output" && sha256sum * > SHA256SUMS)
+    if compgen -G "$OUT/kernel-output/*" >/dev/null; then
+      (cd "$OUT/kernel-output" && sha256sum * > SHA256SUMS)
+    fi
   fi
   {
     echo "- Result: $([ "$result" -eq 0 ] && echo PASS || echo FAIL) (exit $result)"
