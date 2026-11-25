@@ -1,30 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  REFERENCE ONLY: complete dependency set used by the upstream Lumia 930
-  LineageOS 18.1 tree. Do NOT use this manifest as an Android 15 build
-  manifest. All projects below are pinned to legacy LineageOS 18.1 branches.
+  Android 15 port manifest for Nokia Lumia 930 (martini).
+
+  The device tree is maintained in this repository on android-15-port.
+  Kernel, vendor and MSM8974 common projects remain legacy LineageOS 18.1
+  references and are NOT certified for Android 15.
 -->
 <manifest>
+    <remote name="ahmadsubqi" fetch="https://github.com/ahmadsubqi" />
     <remote name="lumia-msm8974" fetch="https://github.com/lumia-msm8974" />
     <remote name="github" fetch="https://github.com/LineageOS" />
     <remote name="muppets" fetch="https://github.com/TheMuppets" />
 
-    <project name="android_device_nokia_martini"
-        path="device/nokia/martini" remote="lumia-msm8974"
-        revision="lineage-18.1" />
-    <project name="android_vendor_nokia_martini"
-        path="vendor/nokia/martini" remote="lumia-msm8974"
-        revision="lineage-18.1" />
+    <!-- New Android 15 device-tree skeleton from this project. -->
+    <project name="martini-lineage-22.1"
+        path="device/nokia/martini" remote="ahmadsubqi"
+        revision="android-15-port" />
+
+    <!-- Legacy dependencies retained only as porting references. -->
     <project name="android_kernel_nokia_msm8974"
         path="kernel/nokia/msm8974" remote="lumia-msm8974"
         revision="lineage-18.1-martini" />
-
-    <project name="android_packages_apps_LumiaParts"
-        path="packages/apps/LumiaParts" remote="lumia-msm8974"
+    <project name="android_vendor_nokia_martini"
+        path="vendor/nokia/martini" remote="lumia-msm8974"
         revision="lineage-18.1" />
     <project name="android_device_oppo_msm8974-common"
         path="device/oppo/msm8974-common" remote="lumia-msm8974"
         revision="lineage-18.1-lumia" />
+
+    <!-- Legacy common/vendor dependencies; validate individually before use. -->
     <project name="android_device_oppo_common"
         path="device/oppo/common" remote="github"
         revision="lineage-18.1" />
@@ -34,10 +38,7 @@
     <project name="android_hardware_sony_timekeep"
         path="hardware/sony/timekeep" remote="github"
         revision="lineage-18.1" />
-    <project name="android_device_oneplus_bacon"
-        path="device/oneplus/bacon" remote="github"
+    <project name="android_packages_apps_LumiaParts"
+        path="packages/apps/LumiaParts" remote="lumia-msm8974"
         revision="lineage-18.1" />
-    <project name="proprietary_vendor_oneplus"
-        path="vendor/oneplus" remote="muppets"
-        revision="lineage-18.1" clone-depth="1" />
 </manifest>
