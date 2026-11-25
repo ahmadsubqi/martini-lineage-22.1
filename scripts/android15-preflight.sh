@@ -12,28 +12,25 @@ log() { printf '%s\n' "$*" | tee -a "$REPORT"; }
 section() { log ""; log "## $*"; }
 
 check_branch() {
-  local label="$1" repo="$2" branch="$3"
-  if git ls-remote --exit-code --heads "https://github.com/$repo.git" "refs/heads/$branch" >/dev/null 2>&1; then
-    local sha
-    sha="$(git ls-remote "https://github.com/$repo.git" "refs/heads/$branch" | awk 'NR==1 {print $1}')"
-    log "- PASS: `$repo` branch `$branch` exists (`$sha`)."
-    return 0
+  local label="$1" repo="$2" branch="$3" sha
+  if sha="$(git ls-remote --exit-code "https://github.com/$repo.git" "refs/heads/$branch" | awk 'NR==1 {print $1}')"; then
+    log "- PASS: $label — $repo@$branch ($sha)"
   else
-    log "- FAIL: `$repo` branch `$branch` not found or inaccessible."
-    return 1
+    log "- FAIL: $label — branch missing or inaccessible: $repo@$branch"
   fi
 }
 
+CLONED_DIR=""
 clone_repo() {
   local name="$1" repo="$2" branch="$3" dest="$TMP/$name"
   log ""
-  log "### $name — `$repo@$branch`"
+  log "### $name — $repo@$branch"
   if ! git clone --quiet --depth=1 --single-branch --branch "$branch" "https://github.com/$repo.git" "$dest" 2>>"$REPORT"; then
     log "- Clone failed; inspect branch/repository availability."
     return 1
   fi
-  log "- Commit: `$(git -C "$dest" rev-parse HEAD)`"
-  printf '%s\n' "$dest"
+  log "- Commit: $(git -C "$dest" rev-parse HEAD)"
+  CLONED_DIR="$dest"
 }
 
 log "# Android 15 / LineageOS 22.1 preflight — Nokia Lumia 930 (martini)"
@@ -43,19 +40,20 @@ log "- Scope: source inventory and compatibility signals only; no ROM build or d
 log "- Expected result at this stage: NOT_BUILD_READY until porting and validation are complete."
 
 section "LineageOS 22.1 platform branch"
-check_branch "LineageOS manifest" "LineageOS/android" "lineage-22.1" || true
-check_branch "LineageOS build system" "LineageOS/android_build" "lineage-22.1" || true
+check_branch "LineageOS manifest" "LineageOS/android" "lineage-22.1"
+check_branch "LineageOS build system" "LineageOS/android_build" "lineage-22.1"
 
 section "Legacy martini source branch availability"
-check_branch "Device tree" "lumia-msm8974/android_device_nokia_martini" "lineage-18.1" || true
-check_branch "Kernel" "lumia-msm8974/android_kernel_nokia_msm8974" "lineage-18.1-martini" || true
-check_branch "Vendor" "lumia-msm8974/android_vendor_nokia_martini" "lineage-18.1" || true
-check_branch "MSM8974 common" "lumia-msm8974/android_device_oppo_msm8974-common" "lineage-18.1-lumia" || true
+check_branch "Device tree" "lumia-msm8974/android_device_nokia_martini" "lineage-18.1"
+check_branch "Kernel" "lumia-msm8974/android_kernel_nokia_msm8974" "lineage-18.1-martini"
+check_branch "Vendor" "lumia-msm8974/android_vendor_nokia_martini" "lineage-18.1"
+check_branch "MSM8974 common" "lumia-msm8974/android_device_oppo_msm8974-common" "lineage-18.1-lumia"
 
 section "Device tree inspection"
-if DT="$(clone_repo device-tree lumia-msm8974/android_device_nokia_martini lineage-18.1)"; then
+if clone_repo device-tree lumia-msm8974/android_device_nokia_martini lineage-18.1; then
+  DT="$CLONED_DIR"
   for f in AndroidProducts.mk BoardConfig.mk lineage_martini.mk device.mk rootdir/etc/fstab.martini; do
-    if [[ -f "$DT/$f" ]]; then log "- PASS: `$f` present."; else log "- FAIL: `$f` missing."; fi
+    if [[ -f "$DT/$f" ]]; then log "- PASS: $f present."; else log "- FAIL: $f missing."; fi
   done
   log ""
   log "#### Architecture and legacy flags"
@@ -68,10 +66,11 @@ else
 fi
 
 section "Kernel source inspection"
-if K="$(clone_repo kernel lumia-msm8974/android_kernel_nokia_msm8974 lineage-18.1-martini)"; then
+if clone_repo kernel lumia-msm8974/android_kernel_nokia_msm8974 lineage-18.1-martini; then
+  K="$CLONED_DIR"
   log "- Kernel Makefile version: $(grep -m1 -E '^VERSION[[:space:]]*=' "$K/Makefile" 2>/dev/null || echo unknown)."
   if [[ -f "$K/arch/arm/configs/lineage_martini_defconfig" ]]; then
-    log "- PASS: ARM defconfig `lineage_martini_defconfig` present."
+    log "- PASS: ARM defconfig lineage_martini_defconfig present."
   else
     log "- FAIL: expected ARM defconfig missing."
   fi
@@ -81,15 +80,17 @@ else
 fi
 
 section "Vendor and common tree inventory"
-if V="$(clone_repo vendor lumia-msm8974/android_vendor_nokia_martini lineage-18.1)"; then
+if clone_repo vendor lumia-msm8974/android_vendor_nokia_martini lineage-18.1; then
+  V="$CLONED_DIR"
   log "- Vendor tree top-level entries: $(find "$V" -mindepth 1 -maxdepth 1 -printf '%f ' | head -c 500)"
   log "- Proprietary file-list candidates:"
   find "$V" -maxdepth 3 -type f \( -name '*.mk' -o -name '*.txt' -o -name '*.xml' \) | sed "s#^$V/##" | head -60 | tee -a "$REPORT" || true
 else
   log "- Vendor clone failed."
 fi
-if C="$(clone_repo msm8974-common lumia-msm8974/android_device_oppo_msm8974-common lineage-18.1-lumia)"; then
-  log "- Common tree contains $(find "$C" -type f | wc -l) files at inspected depth."
+if clone_repo msm8974-common lumia-msm8974/android_device_oppo_msm8974-common lineage-18.1-lumia; then
+  C="$CLONED_DIR"
+  log "- Common tree contains $(find "$C" -type f | wc -l) files."
 else
   log "- MSM8974 common clone failed."
 fi
