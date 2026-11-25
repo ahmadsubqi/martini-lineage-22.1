@@ -7,7 +7,7 @@ KERNEL_REPO="https://github.com/lumia-msm8974/android_kernel_nokia_msm8974.git"
 DEVICE_REPO="https://github.com/lumia-msm8974/android_device_nokia_martini.git"
 VENDOR_REPO="https://github.com/lumia-msm8974/android_vendor_nokia_martini.git"
 COMMON_REPO="https://github.com/lumia-msm8974/android_device_oppo_msm8974-common.git"
-GCC49_REPO="https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi"
+GCC49_REPO="https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9"
 mkdir -p "$OUT"; rm -rf "$WORK"; mkdir -p "$WORK"
 clone_repo() {
   local url="$1" ref="$2" dir="$3"
@@ -80,6 +80,7 @@ clone_repo "$GCC49_REPO" "android-8.1.0_r1" "$WORK/gcc49" >> "$OUT/ANDROID15_DRI
   echo "## 5. Kernel compile smoke test"
 } | tee -a "$OUT/ANDROID15_DRIVER_TOOLCHAIN_AUDIT.md"
 GCC49="$WORK/gcc49/bin/arm-linux-androideabi-gcc"
+echo "- GCC 4.9 compiler path: $GCC49 (executable: $([ -x "$GCC49" ] && echo yes || echo no))" | tee -a "$OUT/ANDROID15_DRIVER_TOOLCHAIN_AUDIT.md"
 if [ -d "$WORK/kernel" ] && [ -x "$GCC49" ] && command -v make >/dev/null 2>&1; then
   (
     cd "$WORK/kernel"
