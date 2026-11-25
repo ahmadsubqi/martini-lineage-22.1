@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -u
-ROOT="\${GITHUB_WORKSPACE:-.}"
-WORK="\${RUNNER_TEMP:-/tmp}/martini-driver-audit"
+ROOT="${GITHUB_WORKSPACE:-.}"
+WORK="${RUNNER_TEMP:-/tmp}/martini-driver-audit"
 OUT="$ROOT/driver-toolchain-audit"
 KERNEL_REPO="https://github.com/lumia-msm8974/android_kernel_nokia_msm8974.git"
 DEVICE_REPO="https://github.com/lumia-msm8974/android_device_nokia_martini.git"
