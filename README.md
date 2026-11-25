@@ -35,6 +35,10 @@ build a ROM or produce a flashable ZIP.
 The workflow is an audit only. Standard GitHub-hosted runners are not assumed
 to have enough disk space, RAM, or runtime for a complete Android ROM build.
 
+## Latest audit
+
+See [`docs/ANDROID15_PORT_AUDIT.md`](docs/ANDROID15_PORT_AUDIT.md) for the verified source inventory, compatibility blockers and safe porting order. The current result is **not build-ready**.
+
 ## Planned Android 15 port stages
 
 1. Audit the complete device tree, kernel source, vendor blobs, firmware and
