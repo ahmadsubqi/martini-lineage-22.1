@@ -1,0 +1,31 @@
+name: Martini Android 15 skeleton checks
+
+on:
+  push:
+    branches:
+      - android-15-port
+    paths:
+      - 'device/nokia/martini/**'
+      - '.repo/local_manifests/martini.xml'
+      - 'scripts/check-martini-skeleton.sh'
+      - '.github/workflows/martini-skeleton-check.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  skeleton:
+    name: Validate minimal device-tree skeleton
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout Android 15 port branch
+        uses: actions/checkout@v4
+        with:
+          ref: android-15-port
+          persist-credentials: false
+
+      - name: Run static skeleton checks
+        run: |
+          chmod +x scripts/check-martini-skeleton.sh
+          scripts/check-martini-skeleton.sh
