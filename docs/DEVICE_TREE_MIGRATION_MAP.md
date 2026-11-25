@@ -55,3 +55,12 @@ Reference: `lumia-msm8974/android_device_nokia_martini`, branch `lineage-18.1`.
 ## Current state
 
 Only source inspection and documentation have been completed. No Android 15 device-tree makefile, kernel patch, vendor blob conversion, boot image or ROM ZIP has been produced. The next code change should be a minimal product/board port based on verified 22.1 build rules, not a wholesale copy of the legacy tree.
+
+## Android 15 architecture note (AOSP build-system check)
+
+AOSP Android 15's build logic defaults `TARGET_SUPPORTS_32_BIT_APPS` to true when neither 32-bit nor 64-bit app support is explicitly declared. This is **not** proof that a 32-bit-only product is supported by the complete LineageOS 22.1 platform, nor does it validate legacy ARM32 proprietary blobs. The official AOSP multilib documentation describes 32/64-bit builds and second-architecture variables; common current examples use a 64-bit primary architecture with ARM32 as the secondary architecture. Martini is ARMv7 hardware, so the exact 32-bit-only product path must be proven against the LineageOS 22.1 build tree before finalizing BoardConfig.
+
+References:
+- AOSP Android 15 board config logic: https://android.googlesource.com/platform/build/+/refs/tags/android-15.0.0_r8/core/board_config.mk
+- AOSP multilib architecture documentation: https://source.android.com/docs/setup/create/64-bit-builds
+- Example generic ARM64 board config: https://android.googlesource.com/device/generic/arm64/+/refs/heads/android15-qpr2-s1-release/BoardConfig.mk
