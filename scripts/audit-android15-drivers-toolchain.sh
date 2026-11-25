@@ -7,6 +7,7 @@ KERNEL_REPO="https://github.com/lumia-msm8974/android_kernel_nokia_msm8974.git"
 DEVICE_REPO="https://github.com/lumia-msm8974/android_device_nokia_martini.git"
 VENDOR_REPO="https://github.com/lumia-msm8974/android_vendor_nokia_martini.git"
 COMMON_REPO="https://github.com/lumia-msm8974/android_device_oppo_msm8974-common.git"
+GCC49_REPO="https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi"
 mkdir -p "$OUT"; rm -rf "$WORK"; mkdir -p "$WORK"
 clone_repo() {
   local url="$1" ref="$2" dir="$3"
@@ -39,6 +40,7 @@ clone_repo "$KERNEL_REPO" "lineage-18.1-martini" "$WORK/kernel" >> "$OUT/ANDROID
 clone_repo "$DEVICE_REPO" "lineage-18.1" "$WORK/device" >> "$OUT/ANDROID15_DRIVER_TOOLCHAIN_AUDIT.md" 2>&1 || true
 clone_repo "$VENDOR_REPO" "lineage-18.1" "$WORK/vendor" >> "$OUT/ANDROID15_DRIVER_TOOLCHAIN_AUDIT.md" 2>&1 || true
 clone_repo "$COMMON_REPO" "lineage-18.1-lumia" "$WORK/common" >> "$OUT/ANDROID15_DRIVER_TOOLCHAIN_AUDIT.md" 2>&1 || true
+clone_repo "$GCC49_REPO" "android-8.1.0_r1" "$WORK/gcc49" >> "$OUT/ANDROID15_DRIVER_TOOLCHAIN_AUDIT.md" 2>&1 || true
 {
   echo
   echo "## 3. Kernel driver source signals"
@@ -77,23 +79,24 @@ clone_repo "$COMMON_REPO" "lineage-18.1-lumia" "$WORK/common" >> "$OUT/ANDROID15
   echo
   echo "## 5. Kernel compile smoke test"
 } | tee -a "$OUT/ANDROID15_DRIVER_TOOLCHAIN_AUDIT.md"
-if [ -d "$WORK/kernel" ] && command -v arm-linux-gnueabi-gcc-9 >/dev/null 2>&1 && command -v make >/dev/null 2>&1; then
+GCC49="$WORK/gcc49/bin/arm-linux-androideabi-gcc"
+if [ -d "$WORK/kernel" ] && [ -x "$GCC49" ] && command -v make >/dev/null 2>&1; then
   (
     cd "$WORK/kernel"
     export ARCH=arm
-    export CROSS_COMPILE=arm-linux-gnueabi-
-    make CC=arm-linux-gnueabi-gcc-9 lineage_martini_defconfig
-    make CC=arm-linux-gnueabi-gcc-9 -j2
+    export CROSS_COMPILE="$WORK/gcc49/bin/arm-linux-androideabi-"
+    make CC="$GCC49" lineage_martini_defconfig
+    make CC="$GCC49" -j2
   ) > "$OUT/kernel-build-smoke.log" 2>&1
   result=$?
   {
     echo "- Result: $([ "$result" -eq 0 ] && echo PASS || echo FAIL) (exit $result)"
-    echo "- Compiler: $(arm-linux-gnueabi-gcc-9 --version | head -n 1)"
+    echo "- Compiler: $("$GCC49" --version | head -n 1)"
     echo "- Full output: kernel-build-smoke.log artifact"
     tail -n 35 "$OUT/kernel-build-smoke.log" || true
   } | tee -a "$OUT/ANDROID15_DRIVER_TOOLCHAIN_AUDIT.md"
 else
-  echo "- Result: NOT_RUN (kernel checkout, cross-compiler, or make unavailable)." | tee -a "$OUT/ANDROID15_DRIVER_TOOLCHAIN_AUDIT.md"
+  echo "- Result: NOT_RUN (kernel checkout, GCC 4.9 prebuilts, or make unavailable)." | tee -a "$OUT/ANDROID15_DRIVER_TOOLCHAIN_AUDIT.md"
 fi
 {
   echo
