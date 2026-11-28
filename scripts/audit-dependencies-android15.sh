@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -uo pipefail
 
-MANIFEST="${1:-.repo/local_manifests/martini.xml}"
+MANIFEST="\${1:-.repo/local_manifests/martini.xml}"
 REPORT="martini-dependency-audit.txt"
 
 if [[ ! -f "$MANIFEST" ]]; then
@@ -21,7 +21,7 @@ for project in root.findall("project"):
     fetch = remotes.get(remote, "")
     name = project.get("name", "")
     url = (fetch.rstrip("/") + "/" + name + ".git") if fetch else ""
-    print("\\t".join([
+    print("\t".join([
         project.get("path", ""), url, project.get("revision", ""),
         remote, name
     ]))
@@ -30,11 +30,11 @@ PY
 {
   echo "=== LUMIA 930 MARTINI DEPENDENCY AUDIT ==="
   echo "Manifest: $MANIFEST"
-  echo "Audit UTC: $(date -u +%F\\ %T)"
+  echo "Audit UTC: $(date -u +%F\ %T)"
   echo
   echo "=== PROJECT AND REVISION REACHABILITY ==="
 
-  while IFS=$'\\t' read -r path url revision remote name; do
+  while IFS=$'\t' read -r path url revision remote name; do
     [[ -n "$name" ]] || continue
     echo
     echo "PROJECT: $name"
@@ -58,7 +58,7 @@ PY
 
   echo
   echo "=== ANDROID 15 READINESS GATE ==="
-  if grep -Eq 'lineage-18\\.1|lineage-19\\.1|lineage-20\\.0|lineage-21\\.0' "$MANIFEST"; then
+  if grep -Eq 'lineage-18\.1|lineage-19\.1|lineage-20\.0|lineage-21\.0' "$MANIFEST"; then
     echo "BLOCKER: manifest contains Android 11-14 era branch names."
     echo "This is a legacy reference manifest, not a LineageOS 22.1 manifest."
   else
@@ -76,8 +76,6 @@ PY
   echo "Prepare a separate Android 15 manifest using verified compatible projects."
 } | tee "$REPORT"
 
-# Fail the workflow when legacy refs or unreachable dependencies are found.
-# The workflow's always() artifact step still uploads the report for inspection.
 if grep -Eq 'RESULT=FAIL|BLOCKER:' "$REPORT"; then
   echo "Dependency audit is BLOCKED; inspect $REPORT."
   exit 1
