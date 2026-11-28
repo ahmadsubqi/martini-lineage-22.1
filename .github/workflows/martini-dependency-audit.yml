@@ -1,0 +1,35 @@
+name: Martini Android 15 Dependency Audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.repo/local_manifests/martini.xml'
+      - 'scripts/audit-dependencies-android15.sh'
+      - '.github/workflows/martini-dependency-audit.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+      - name: Install XML tooling
+        run: sudo apt-get update && sudo apt-get install -y python3
+      - name: Validate script
+        run: bash -n scripts/audit-dependencies-android15.sh
+      - name: Audit manifest dependency branches
+        run: bash scripts/audit-dependencies-android15.sh .repo/local_manifests/martini.xml
+      - name: Upload dependency report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: martini-android15-dependency-audit
+          path: martini-dependency-audit.txt
+          if-no-files-found: error
+          retention-days: 14
