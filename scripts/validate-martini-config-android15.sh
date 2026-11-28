@@ -12,7 +12,7 @@ echo "=== MARTINI DEVICE CONFIG + ZIMAGE-DTB BUILD ==="
 
 TOOLCHAIN_DIR="$RUNNER_TEMP/gcc-linaro-4.9.4"
 TOOLCHAIN_ARCHIVE="$RUNNER_TEMP/gcc-linaro-4.9.4.tar.xz"
-TOOLCHAIN_URL="https://releases.linaro.org/components/toolchain/binaries/4.9-2017.01/arm-linux-gnueabi/gcc-linaro-4.9.4-2017.01-x86_64_arm-linux-gnueabi.tar.xz"
+TOOLCHAIN_URL="https://mirrors.aliyun.com/armbian-releases/_toolchain/gcc-linaro-4.9.4-2017.01-x86_64_arm-linux-gnueabi.tar.xz"
 CROSS_COMPILE="$TOOLCHAIN_DIR/bin/arm-linux-gnueabi-"
 echo "Candidate: Android4Lumia/android_kernel_nokia_martini @ lineage-23.1"
 echo "Baseline: lumia-msm8974/android_kernel_nokia_msm8974 @ lineage-18.1-martini"
@@ -32,6 +32,7 @@ done
 echo
 echo "[1a] Install legacy Linaro GCC 4.9.4 cross-toolchain"
 curl -fL --retry 3 "$TOOLCHAIN_URL" -o "$TOOLCHAIN_ARCHIVE"
+test "$(file -b "$TOOLCHAIN_ARCHIVE")" != "HTML document, ASCII text"
 mkdir -p "$TOOLCHAIN_DIR"
 tar -xf "$TOOLCHAIN_ARCHIVE" --strip-components=1 -C "$TOOLCHAIN_DIR"
 test -x "${CROSS_COMPILE}gcc"
