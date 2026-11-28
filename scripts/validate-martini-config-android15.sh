@@ -46,6 +46,13 @@ make -C "$KERNEL_DIR" ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- msm8974_defconfi
 sed -i 's/^CONFIG_BUILD_ARM_APPENDED_DTB_IMAGE_NAMES=.*/CONFIG_BUILD_ARM_APPENDED_DTB_IMAGE_NAMES="msm8974-martini"/' "$KERNEL_DIR/.config"
 make -C "$KERNEL_DIR" ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- olddefconfig
 
+# The Martini baseline intentionally disables PERF_EVENTS. The candidate tree
+# otherwise builds its Krait L2 PMU driver unconditionally, although arm_pmu
+# declarations are hidden when CONFIG_HW_PERF_EVENTS=n. Keep the baseline
+# feature setting and correctly guard these optional objects in the build workspace.
+sed -i "s|^obj-\$(CONFIG_ARCH_MSM_KRAIT) += msm-krait-l2-accessors.o perf_event_msm_krait_l2.o$|obj-\$(CONFIG_HW_PERF_EVENTS) += msm-krait-l2-accessors.o perf_event_msm_krait_l2.o|" "$KERNEL_DIR/arch/arm/mach-msm/Makefile"
+echo "KRAIT_L2_PMU_OBJECT_GUARD=CONFIG_HW_PERF_EVENTS"
+
 echo
 echo "[4] Resolved device-critical options"
 for key in CONFIG_ARCH_MSM8974 CONFIG_OF CONFIG_BUILD_ARM_APPENDED_DTB_IMAGE CONFIG_BUILD_ARM_APPENDED_DTB_IMAGE_NAMES CONFIG_TOUCHSCREEN_SYNAPTICS_I2C_RMI4 CONFIG_PRIMA_WLAN CONFIG_PRONTO_WLAN CONFIG_F2FS_FS CONFIG_EXT4_FS CONFIG_SECURITY_SELINUX CONFIG_MSM_KGSL CONFIG_QPNP_CHARGER CONFIG_QPNP_BMS; do
