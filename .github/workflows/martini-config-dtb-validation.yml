@@ -1,0 +1,35 @@
+name: Martini Device Config and DTB Validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/validate-martini-config-android15.sh'
+      - '.github/workflows/martini-config-dtb-validation.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+      - name: Install ARM kernel build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git make gcc-arm-linux-gnueabi bc bison flex libssl-dev device-tree-compiler python3
+      - name: Validate script syntax
+        run: bash -n scripts/validate-martini-config-android15.sh
+      - name: Merge Martini config and compile DTB
+        run: bash scripts/validate-martini-config-android15.sh
+      - name: Upload config and DTB validation
+        uses: actions/upload-artifact@v4
+        with:
+          name: martini-config-dtb-validation-android15
+          path: |
+            martini-device-config-validation-android15.txt
+            martini-merged-kernel.config
+          if-no-files-found: error
