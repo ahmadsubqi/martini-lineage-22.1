@@ -28,6 +28,9 @@ REPORT="$RUNNER_TEMP/report.txt"
   echo "[3] Create merged candidate config"
   make -C "$KERNEL_DIR" ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- msm8974_defconfig
   ( cd "$KERNEL_DIR" && scripts/kconfig/merge_config.sh -m .config "$BASELINE_DIR/arch/arm/configs/lineage_martini_defconfig" )
+  # The baseline uses a legacy DTB basename that does not exist in this
+  # candidate tree. Map it to the candidate's actual msm8974-martini.dts.
+  sed -i 's/^CONFIG_BUILD_ARM_APPENDED_DTB_IMAGE_NAMES=.*/CONFIG_BUILD_ARM_APPENDED_DTB_IMAGE_NAMES="msm8974-martini"/' "$KERNEL_DIR/.config"
   make -C "$KERNEL_DIR" ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- olddefconfig
 
   echo
@@ -50,17 +53,30 @@ REPORT="$RUNNER_TEMP/report.txt"
   fi
 
   echo
-  echo "[5] Verify DTB build"
-  # Build this board DTB through the legacy ARM pattern rule. The aggregate
-  # dtbs target in this candidate expands a path already prefixed with
-  # arch/arm/boot, causing the parent rule to prepend that path twice.
+  echo "[5] Verify candidate DTB basename and build DTB"
+  grep -q '^CONFIG_BUILD_ARM_APPENDED_DTB_IMAGE_NAMES="msm8974-martini"
+} 2>&1 | tee "$REPORT"
+
+cp "$REPORT" "$OUT"
+ "$KERNEL_DIR/.config"
   make -C "$KERNEL_DIR" ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- -j2 msm8974-martini.dtb
   test -s "$KERNEL_DIR/arch/arm/boot/msm8974-martini.dtb"
   echo "DTB_BUILD=SUCCESS"
-  cp "$KERNEL_DIR/.config" "$GITHUB_WORKSPACE/martini-merged-kernel.config"
+
   echo
-  echo "RESULT=DEVICE_TREE_AND_MERGED_CONFIG_VALIDATED"
-  echo "NOTE=This validates config resolution and DTB compilation only. It does not yet build zImage, flash, or boot-test the device."
+  echo "[6] Build appended zImage-dtb"
+  make -C "$KERNEL_DIR" ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- -j2 zImage-dtb
+  test -s "$KERNEL_DIR/arch/arm/boot/zImage"
+  test -s "$KERNEL_DIR/arch/arm/boot/zImage-dtb"
+  mkdir -p "$GITHUB_WORKSPACE/martini-kernel-output"
+  cp "$KERNEL_DIR/arch/arm/boot/zImage" "$GITHUB_WORKSPACE/martini-kernel-output/zImage"
+  cp "$KERNEL_DIR/arch/arm/boot/zImage-dtb" "$GITHUB_WORKSPACE/martini-kernel-output/zImage-dtb"
+  cp "$KERNEL_DIR/arch/arm/boot/msm8974-martini.dtb" "$GITHUB_WORKSPACE/martini-kernel-output/msm8974-martini.dtb"
+  cp "$KERNEL_DIR/.config" "$GITHUB_WORKSPACE/martini-merged-kernel.config"
+  echo "ZIMAGE_DTB_BUILD=SUCCESS"
+  echo
+  echo "RESULT=KERNEL_ZIMAGE_DTB_BUILT"
+  echo "NOTE=Build artifact only. Not flash-tested or boot-tested on Nokia Lumia 930."
 } 2>&1 | tee "$REPORT"
 
 cp "$REPORT" "$OUT"
