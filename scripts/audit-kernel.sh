@@ -8,7 +8,7 @@ if [[ ! -d "$SRC" || ! -f "$SRC/Makefile" ]]; then
 fi
 rm -f "$REPORT"
 {
-  echo "=== MARTINI KERNEL STATIC AUDIT (ANDROID 17 PREPARATION) ==="
+  echo "=== MARTINI KERNEL STATIC AUDIT (ANDROID 15 PREPARATION) ==="
   echo "Source: https://github.com/lumia-msm8974/android_kernel_nokia_msm8974"
   echo "Requested ref: lineage-18.1-martini"
   echo "Audit UTC: $(date -u +%F %T)"
@@ -48,5 +48,5 @@ rm -f "$REPORT"
   git -C "$SRC" log -15 --oneline --decorate 2>&1 || true
   echo
   echo "=== INTERPRETATION ==="
-  echo "This report is an inventory, not a compatibility verdict. Linux 3.4.113 is legacy; Android 17 integration requires a separate framework/vendor/kernel compatibility plan and build tests."
+  echo "This report is an inventory, not a compatibility verdict. Linux 3.4.113 is legacy; Android 15 integration requires a separate framework/vendor/kernel compatibility plan and build tests."
 } | tee "$REPORT"
