@@ -1,0 +1,37 @@
+name: Martini Android 15 Kernel Candidate Audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'scripts/audit-kernel-candidate-android15.sh'
+      - '.github/workflows/martini-kernel-candidate-audit.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  kernel-candidate-audit:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Install audit tools
+        run: sudo apt-get update && sudo apt-get install -y git curl gawk
+
+      - name: Validate script
+        run: bash -n scripts/audit-kernel-candidate-android15.sh
+
+      - name: Audit Android 15 kernel candidate
+        run: bash scripts/audit-kernel-candidate-android15.sh
+
+      - name: Upload audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: martini-android15-kernel-candidate-audit
+          path: martini-android15-kernel-candidate.txt
+          if-no-files-found: error
+          retention-days: 14
