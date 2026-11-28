@@ -11,6 +11,7 @@ REPORT="$RUNNER_TEMP/report.txt"
   echo "Candidate: Android4Lumia/android_kernel_nokia_martini @ lineage-23.1"
   echo "Baseline: lumia-msm8974/android_kernel_nokia_msm8974 @ lineage-18.1-martini"
   echo
+
   echo "[1] Clone sources"
   git clone --depth=1 --branch lineage-23.1 https://github.com/Android4Lumia/android_kernel_nokia_martini.git "$KERNEL_DIR"
   git clone --depth=1 --branch lineage-18.1-martini https://github.com/lumia-msm8974/android_kernel_nokia_msm8974.git "$BASELINE_DIR"
@@ -31,16 +32,23 @@ REPORT="$RUNNER_TEMP/report.txt"
 
   echo
   echo "[4] Resolved device-critical options"
-  for key in CONFIG_ARCH_MSM8974 CONFIG_OF CONFIG_BUILD_ARM_APPENDED_DTB_IMAGE CONFIG_BUILD_ARM_APPENDED_DTB_IMAGE_NAMES CONFIG_MACH_NOKIA_MARTINI CONFIG_TOUCHSCREEN_SYNAPTICS_I2C_RMI4 CONFIG_PRIMA_WLAN CONFIG_PRONTO_WLAN CONFIG_F2FS_FS CONFIG_EXT4_FS CONFIG_SECURITY_SELINUX CONFIG_MSM_KGSL CONFIG_QPNP_CHARGER CONFIG_QPNP_BMS; do
+  for key in CONFIG_ARCH_MSM8974 CONFIG_OF CONFIG_BUILD_ARM_APPENDED_DTB_IMAGE CONFIG_BUILD_ARM_APPENDED_DTB_IMAGE_NAMES CONFIG_TOUCHSCREEN_SYNAPTICS_I2C_RMI4 CONFIG_PRIMA_WLAN CONFIG_PRONTO_WLAN CONFIG_F2FS_FS CONFIG_EXT4_FS CONFIG_SECURITY_SELINUX CONFIG_MSM_KGSL CONFIG_QPNP_CHARGER CONFIG_QPNP_BMS; do
     value="$(grep -E "^$key=" "$KERNEL_DIR/.config" | head -n1 || true)"
     if [ -z "$value" ] && grep -qE "^# $key is not set$" "$KERNEL_DIR/.config"; then value="$key=n"; fi
     [ -n "$value" ] || value="$key=UNSET"
     echo "$value"
   done
+  if grep -q 'config MACH_NOKIA_MARTINI' "$KERNEL_DIR/arch/arm/mach-msm/Kconfig"; then
+    echo "CONFIG_MACH_NOKIA_MARTINI=SUPPORTED_BY_CANDIDATE_KCONFIG"
+  else
+    echo "CONFIG_MACH_NOKIA_MARTINI=NOT_IN_CANDIDATE_KCONFIG (candidate uses DT-based board description; legacy symbol is not expected)"
+  fi
 
   echo
   echo "[5] Verify DTB build"
-  make -C "$KERNEL_DIR" ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- -j2 arch/arm/boot/dts/msm8974-martini.dtb
+  # Use the aggregate dtbs target. Passing an arch/arm/boot/... path here
+  # makes this legacy ARM Makefile prepend the boot path a second time.
+  make -C "$KERNEL_DIR" ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- -j2 dtbs
   test -s "$KERNEL_DIR/arch/arm/boot/dts/msm8974-martini.dtb"
   echo "DTB_BUILD=SUCCESS"
   cp "$KERNEL_DIR/.config" "$GITHUB_WORKSPACE/martini-merged-kernel.config"
