@@ -1,12 +1,12 @@
-# Martini Kernel Android 17 Static Audit
+# Martini Kernel Android 15 Static Audit
 
-This workflow performs an inventory of the Lumia 930 (martini) Linux kernel source at a pinned reference commit. It is diagnostic only and does not prove Android 17 compatibility or a successful ROM boot.
+This workflow performs an inventory of the Lumia 930 (martini) Linux kernel source at a pinned reference commit. It is diagnostic only and does not prove Android 15 compatibility or a successful ROM boot.
 
 ## Run
 1. Open the repository's **Actions** tab.
-2. Select **Martini Kernel Android 17 Compatibility Audit**.
+2. Select **Martini Kernel Android 15 Compatibility Audit**.
 3. Click **Run workflow** and select the `main` branch.
-4. After the run completes, download the `martini-kernel-android17-audit` artifact.
+4. After the run completes, download the `martini-kernel-android15-audit` artifact.
 
 ## Source
 - Kernel: `lumia-msm8974/android_kernel_nokia_msm8974`
