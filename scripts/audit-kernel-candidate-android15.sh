@@ -3,7 +3,7 @@ set -euo pipefail
 REPORT="martini-android15-kernel-candidate.txt"
 KERNEL_URL="https://github.com/Android4Lumia/android_kernel_nokia_martini.git"
 KERNEL_BRANCH="lineage-23.1"
-BASE_URL="https://raw.githubusercontent.com/Android4Lumia/android_kernel_nokia_martini/\${KERNEL_BRANCH}"
+BASE_URL="https://raw.githubusercontent.com/Android4Lumia/android_kernel_nokia_martini/${KERNEL_BRANCH}"
 DEVICE_URL="https://github.com/lumia-msm8974/android_device_nokia_martini.git"
 VENDOR_URL="https://github.com/lumia-msm8974/android_vendor_nokia_martini.git"
 
