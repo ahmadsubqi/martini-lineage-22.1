@@ -1,0 +1,31 @@
+name: Martini Kernel Defconfig Comparison
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/compare-kernel-defconfig-android15.sh'
+      - '.github/workflows/martini-kernel-defconfig-compare.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  compare-defconfigs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+      - name: Install tools
+        run: sudo apt-get update && sudo apt-get install -y curl python3
+      - name: Validate comparison script
+        run: bash -n scripts/compare-kernel-defconfig-android15.sh
+      - name: Compare Martini and candidate configs
+        run: bash scripts/compare-kernel-defconfig-android15.sh
+      - name: Upload comparison report
+        uses: actions/upload-artifact@v4
+        with:
+          name: martini-kernel-defconfig-comparison-android15
+          path: martini-kernel-config-compare-android15.txt
+          if-no-files-found: error
