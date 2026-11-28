@@ -23,6 +23,16 @@ for f in msm8974-martini.dts msm8974-martini.dtsi msm8974-martini-panel.dtsi msm
   test -s "$KERNEL_DIR/arch/arm/boot/dts/$f"
   echo "FOUND: $f"
 done
+
+# This legacy 3.4 kernel only ships compiler-gcc headers through GCC 5.
+# Provide a build-workspace compatibility header for the GCC 11 toolchains
+# available on Ubuntu 22.04; do not modify the upstream kernel repository.
+for compiler_header in "$KERNEL_DIR/include/linux/compiler-gcc11.h"; do
+  if [ ! -s "$compiler_header" ]; then
+    cp "$KERNEL_DIR/include/linux/compiler-gcc5.h" "$compiler_header"
+  fi
+done
+echo "HOST_COMPILER_COMPAT_HEADER=compiler-gcc11.h (derived from compiler-gcc5.h)"
 grep -nE 'model =|compatible =|msm8974-martini.dtsi' "$KERNEL_DIR/arch/arm/boot/dts/msm8974-martini.dts" || true
 
 echo
