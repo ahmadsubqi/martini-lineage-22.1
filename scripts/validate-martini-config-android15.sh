@@ -27,7 +27,7 @@ REPORT="$RUNNER_TEMP/report.txt"
   echo
   echo "[3] Create merged candidate config"
   make -C "$KERNEL_DIR" ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- msm8974_defconfig
-  "$KERNEL_DIR/scripts/kconfig/merge_config.sh" -m -O "$KERNEL_DIR" "$KERNEL_DIR/.config" "$BASELINE_DIR/arch/arm/configs/lineage_martini_defconfig"
+  ( cd "$KERNEL_DIR" && scripts/kconfig/merge_config.sh -m .config "$BASELINE_DIR/arch/arm/configs/lineage_martini_defconfig" )
   make -C "$KERNEL_DIR" ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- olddefconfig
 
   echo
@@ -37,6 +37,11 @@ REPORT="$RUNNER_TEMP/report.txt"
     if [ -z "$value" ] && grep -qE "^# $key is not set$" "$KERNEL_DIR/.config"; then value="$key=n"; fi
     [ -n "$value" ] || value="$key=UNSET"
     echo "$value"
+  done
+  echo
+  echo "[4a] Check baseline-critical options after Kconfig resolution"
+  for key in CONFIG_PRIMA_WLAN CONFIG_PRONTO_WLAN CONFIG_F2FS_FS CONFIG_EXT4_FS CONFIG_BUILD_ARM_APPENDED_DTB_IMAGE_NAMES; do
+    grep -E "^(# )?$key(=| is not set)" "$KERNEL_DIR/.config" || true
   done
   if grep -q 'config MACH_NOKIA_MARTINI' "$KERNEL_DIR/arch/arm/mach-msm/Kconfig"; then
     echo "CONFIG_MACH_NOKIA_MARTINI=SUPPORTED_BY_CANDIDATE_KCONFIG"
