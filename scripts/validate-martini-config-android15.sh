@@ -9,6 +9,11 @@ REPORT="$RUNNER_TEMP/report.txt"
 exec > >(tee "$REPORT") 2>&1
 
 echo "=== MARTINI DEVICE CONFIG + ZIMAGE-DTB BUILD ==="
+
+TOOLCHAIN_DIR="$RUNNER_TEMP/gcc-linaro-4.9.4"
+TOOLCHAIN_ARCHIVE="$RUNNER_TEMP/gcc-linaro-4.9.4.tar.xz"
+TOOLCHAIN_URL="https://releases.linaro.org/components/toolchain/binaries/4.9-2017.01/arm-linux-gnueabi/gcc-linaro-4.9.4-2017.01-x86_64_arm-linux-gnueabi.tar.xz"
+CROSS_COMPILE="$TOOLCHAIN_DIR/bin/arm-linux-gnueabi-"
 echo "Candidate: Android4Lumia/android_kernel_nokia_martini @ lineage-23.1"
 echo "Baseline: lumia-msm8974/android_kernel_nokia_msm8974 @ lineage-18.1-martini"
 
@@ -24,13 +29,7 @@ for f in msm8974-martini.dts msm8974-martini.dtsi msm8974-martini-panel.dtsi msm
   echo "FOUND: $f"
 done
 
-# GCC 11 compatibility for this legacy 3.4 kernel, isolated to the CI workspace.
-if [ ! -s "$KERNEL_DIR/include/linux/compiler-gcc11.h" ]; then
-  cp "$KERNEL_DIR/include/linux/compiler-gcc5.h" "$KERNEL_DIR/include/linux/compiler-gcc11.h"
-fi
-echo "COMPILER_COMPAT_HEADER=compiler-gcc11.h"
-
-# Supply the prototype required by this legacy MSM power-management source.
+# Use the matching GCC 4.9 toolchain; no GCC 11 compatibility shim is needed.\necho "CROSS_COMPILER=$("${CROSS_COMPILE}gcc" -dumpversion)"\n\n# Supply the prototype required by this legacy MSM power-management source.
 MSM_PM_SOURCE="$KERNEL_DIR/arch/arm/mach-msm/msm-pm.c"
 if ! grep -qF 'extern u64 sched_clock(void);' "$MSM_PM_SOURCE"; then
   sed -i '/^#include <linux\/tick.h>$/a\extern u64 sched_clock(void);' "$MSM_PM_SOURCE"
@@ -39,13 +38,13 @@ echo "MSM_PM_SCHED_CLOCK_DECLARATION=present"
 
 echo
 echo "[3] Create merged candidate config"
-make -C "$KERNEL_DIR" ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- msm8974_defconfig
+make -C "$KERNEL_DIR" ARCH=arm CROSS_COMPILE="$CROSS_COMPILE" msm8974_defconfig
 (
   cd "$KERNEL_DIR"
   scripts/kconfig/merge_config.sh -m .config "$BASELINE_DIR/arch/arm/configs/lineage_martini_defconfig"
 )
 sed -i 's/^CONFIG_BUILD_ARM_APPENDED_DTB_IMAGE_NAMES=.*/CONFIG_BUILD_ARM_APPENDED_DTB_IMAGE_NAMES="msm8974-martini"/' "$KERNEL_DIR/.config"
-make -C "$KERNEL_DIR" ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- olddefconfig
+make -C "$KERNEL_DIR" ARCH=arm CROSS_COMPILE="$CROSS_COMPILE" olddefconfig
 
 # The Martini baseline disables PERF_EVENTS; avoid compiling the optional
 # Krait L2 PMU objects when their arm_pmu API is unavailable.
@@ -71,13 +70,13 @@ grep -E '^CONFIG_BUILD_ARM_APPENDED_DTB_IMAGE_NAMES=' "$KERNEL_DIR/.config"
 echo
 echo "[5] Build Martini DTB"
 grep -q '^CONFIG_BUILD_ARM_APPENDED_DTB_IMAGE_NAMES="msm8974-martini"$' "$KERNEL_DIR/.config"
-make -C "$KERNEL_DIR" ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- -j2 msm8974-martini.dtb
+make -C "$KERNEL_DIR" ARCH=arm CROSS_COMPILE="$CROSS_COMPILE" -j2 msm8974-martini.dtb
 test -s "$KERNEL_DIR/arch/arm/boot/msm8974-martini.dtb"
 echo "DTB_BUILD=SUCCESS"
 
 echo
 echo "[6] Build appended zImage-dtb"
-make -C "$KERNEL_DIR" ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- -j2 zImage-dtb
+make -C "$KERNEL_DIR" ARCH=arm CROSS_COMPILE="$CROSS_COMPILE" -j2 zImage-dtb
 test -s "$KERNEL_DIR/arch/arm/boot/zImage"
 test -s "$KERNEL_DIR/arch/arm/boot/zImage-dtb"
 
