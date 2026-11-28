@@ -1,0 +1,36 @@
+name: Martini Device Tree Android 15 Compatibility Audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  device-tree-audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout audit repository
+        uses: actions/checkout@v4
+
+      - name: Clone pinned Lumia 930 device tree
+        run: |
+          git clone --filter=blob:none https://github.com/lumia-msm8974/android_device_nokia_martini.git device-src
+          git -C device-src checkout 0a92a30a194135c5004743717d14c817be3537d6
+          echo "Checked out: $(git -C device-src rev-parse HEAD)"
+
+      - name: Validate audit script
+        run: bash -n scripts/audit-device-android15.sh
+
+      - name: Run static device tree audit
+        run: bash scripts/audit-device-android15.sh device-src
+
+      - name: Upload audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: martini-device-tree-android15-audit
+          path: martini-device-tree-android15-audit.txt
+          if-no-files-found: error
+          retention-days: 14
