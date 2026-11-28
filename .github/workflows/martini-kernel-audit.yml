@@ -1,0 +1,37 @@
+name: Martini Kernel Android 17 Compatibility Audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  kernel-audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout audit scripts
+        uses: actions/checkout@v4
+
+      - name: Clone kernel source and checkout pinned revision
+        run: |
+          git clone --filter=blob:none https://github.com/lumia-msm8974/android_kernel_nokia_msm8974.git kernel-src
+          git -C kernel-src fetch origin lineage-18.1-martini
+          git -C kernel-src checkout 75676b8f3f0682b3813144d2f0f04627aa6f2f1c
+          echo "Checked out: $(git -C kernel-src rev-parse HEAD)"
+
+      - name: Validate audit script syntax
+        run: bash -n scripts/audit-kernel.sh
+
+      - name: Run static kernel audit
+        run: bash scripts/audit-kernel.sh kernel-src
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: martini-kernel-android17-audit
+          path: kernel-audit-report.txt
+          if-no-files-found: error
+          retention-days: 14
