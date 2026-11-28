@@ -28,8 +28,9 @@ jobs:
       - name: Upload config and DTB validation
         uses: actions/upload-artifact@v4
         with:
-          name: martini-config-dtb-validation-android15
+          name: martini-kernel-zimage-dtb-android15
           path: |
             martini-device-config-validation-android15.txt
             martini-merged-kernel.config
+            martini-kernel-output/
           if-no-files-found: error
