@@ -29,7 +29,15 @@ for f in msm8974-martini.dts msm8974-martini.dtsi msm8974-martini-panel.dtsi msm
   echo "FOUND: $f"
 done
 
-# Use the matching GCC 4.9 toolchain; no GCC 11 compatibility shim is needed.\necho "CROSS_COMPILER=$("${CROSS_COMPILE}gcc" -dumpversion)"\n\n# Supply the prototype required by this legacy MSM power-management source.
+echo
+echo "[1a] Install legacy Linaro GCC 4.9.4 cross-toolchain"
+curl -fL --retry 3 "$TOOLCHAIN_URL" -o "$TOOLCHAIN_ARCHIVE"
+mkdir -p "$TOOLCHAIN_DIR"
+tar -xf "$TOOLCHAIN_ARCHIVE" --strip-components=1 -C "$TOOLCHAIN_DIR"
+test -x "${CROSS_COMPILE}gcc"
+echo "CROSS_COMPILER=$("${CROSS_COMPILE}gcc" -dumpversion)"
+
+# Supply the prototype required by this legacy MSM power-management source.
 MSM_PM_SOURCE="$KERNEL_DIR/arch/arm/mach-msm/msm-pm.c"
 if ! grep -qF 'extern u64 sched_clock(void);' "$MSM_PM_SOURCE"; then
   sed -i '/^#include <linux\/tick.h>$/a\extern u64 sched_clock(void);' "$MSM_PM_SOURCE"
