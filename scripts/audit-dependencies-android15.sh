@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -uo pipefail
 
-MANIFEST="\${1:-.repo/local_manifests/martini.xml}"
+MANIFEST="$1"
+if [[ -z "$MANIFEST" ]]; then MANIFEST=".repo/local_manifests/martini.xml"; fi
 REPORT="martini-dependency-audit.txt"
 
 if [[ ! -f "$MANIFEST" ]]; then
