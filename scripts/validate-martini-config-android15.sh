@@ -46,10 +46,11 @@ REPORT="$RUNNER_TEMP/report.txt"
 
   echo
   echo "[5] Verify DTB build"
-  # Use the aggregate dtbs target. Passing an arch/arm/boot/... path here
-  # makes this legacy ARM Makefile prepend the boot path a second time.
-  make -C "$KERNEL_DIR" ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- -j2 dtbs
-  test -s "$KERNEL_DIR/arch/arm/boot/dts/msm8974-martini.dtb"
+  # Build this board DTB through the legacy ARM pattern rule. The aggregate
+  # dtbs target in this candidate expands a path already prefixed with
+  # arch/arm/boot, causing the parent rule to prepend that path twice.
+  make -C "$KERNEL_DIR" ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- -j2 msm8974-martini.dtb
+  test -s "$KERNEL_DIR/arch/arm/boot/msm8974-martini.dtb"
   echo "DTB_BUILD=SUCCESS"
   cp "$KERNEL_DIR/.config" "$GITHUB_WORKSPACE/martini-merged-kernel.config"
   echo
