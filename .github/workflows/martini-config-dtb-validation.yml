@@ -34,3 +34,5 @@ jobs:
             martini-merged-kernel.config
             martini-kernel-output/
           if-no-files-found: error
+
+# Trigger validation after build-script repair.
